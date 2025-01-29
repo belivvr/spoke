@@ -16,7 +16,7 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
   static async deserialize(editor, json, loadAsync, onError) {
     const node = await super.deserialize(editor, json);
 
-    const { src, inlineURL, frameOption } = json.components.find(c => c.name === "Inline View").props;
+    const props = json.components.find(c => c.name === "Inline View").props;
 
     if (json.components.find(c => c.name === "billboard")) {
       node.billboard = true;
@@ -24,9 +24,12 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
 
     loadAsync(
       (async () => {
-        await node.load(src, onError);
-        node.inlineURL = inlineURL;
-        node.frameOption = frameOption;
+        await node.load(props.src, onError);
+        node.inlineURL = props.inlineURL;
+        node.frameOption = props.frameOption;
+        node.contentType = props.contentType || "url";       // 기본값 설정
+        node.triggerMode = props.triggerMode || "click";     // 기본값 설정
+        node.triggerDistance = props.triggerDistance || 2;   // 기본값 설정
       })()
     );
     
@@ -40,6 +43,11 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
     this.inlineURL = "";
     this.frameOption = "Main";
     this.billboard = false;
+    
+    // 새로운 속성들 추가
+    this.contentType = "url";     // 기본값은 url
+    this.triggerMode = "click";   // 기본값은 click
+    this.triggerDistance = 2;     // 기본값은 2미터
   }
 
   get src() {
@@ -117,6 +125,11 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
     this.inlineURL = source.inlineURL;
     this.frameOption = source.frameOption;
     this.billboard = source.billboard;
+    
+    // 새로운 속성들 복사
+    this.contentType = source.contentType;
+    this.triggerMode = source.triggerMode;
+    this.triggerDistance = source.triggerDistance;
 
     return this;
   }
@@ -126,7 +139,10 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
       'Inline View': {
         src: this._canonicalUrl,
         inlineURL: this.inlineURL,
-        frameOption: this.frameOption
+        frameOption: this.frameOption,
+        contentType: this.contentType,
+        triggerMode: this.triggerMode,
+        triggerDistance: this.triggerDistance
       }
     };
 
@@ -141,30 +157,32 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
     super.prepareForExport();
     this.remove(this.helper);
 
-
     const convertedFrameOption = this.frameOption === "main"
-    ? "main"
-    : this.frameOption === "sideView"
-    ? "sideView"
-    : this.frameOption === "newWindow"
-    ? "newWindow"
-    : "selfWindow";
-  
+      ? "main"
+      : this.frameOption === "sideView"
+      ? "sideView"
+      : this.frameOption === "newWindow"
+      ? "newWindow"
+      : "selfWindow";
+
     this.addGLTFComponent("inline-frame", {
       name: this.name,
       src: this.inlineURL,
-      frameOption:convertedFrameOption,
-      imageURL: this.src
+      frameOption: convertedFrameOption,
+      imageURL: this.src,
+      contentType: this.contentType,
+      triggerMode: this.triggerMode,
+      triggerDistance: this.triggerDistance
     });
-  
+
     if (this.billboard) {
       this.addGLTFComponent("billboard", {});
     }
-  
+
     this.addGLTFComponent("networked", {
       id: this.uuid
     });
-  
+
     this.replaceObject();
   }
 
