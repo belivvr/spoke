@@ -10,6 +10,7 @@ import { WindowRestore } from "styled-icons/fa-solid/WindowRestore";
 import useSetPropertySelected from "./useSetPropertySelected";
 import NumericInput from "../inputs/NumericInput";
 
+
 export const options = {
   main: "Main",
   sideView: "Side view",
@@ -31,6 +32,7 @@ export default function InlineViewNodeEditor(props) {
   const onChangeContentType = useSetPropertySelected(editor, "contentType");
   const onChangeTriggerMode = useSetPropertySelected(editor, "triggerMode");
   const onChangeTriggerDistance = useSetPropertySelected(editor, "triggerDistance");
+  const onChangeButtonText = useSetPropertySelected(editor, "buttonText");
 
   // .glb 파일 검증
   const validateGLBUrl = (url) => {
@@ -50,8 +52,10 @@ export default function InlineViewNodeEditor(props) {
   const handleContentTypeChange = (type) => {
     onChangeContentType(type);
     if (type === "avatar") {
-      // avatar 타입으로 변경 시 frameOption을 main으로 강제
       onChangeFrameOption("main");
+      onChangeButtonText("Change Avatar");
+    } else {
+      onChangeButtonText("Open Frame");
     }
   };
 
@@ -115,6 +119,12 @@ export default function InlineViewNodeEditor(props) {
             />
           </InputGroup>
         )}
+        <InputGroup name="Button Text" info="Text displayed on the button">
+          <StringInput 
+            value={node.buttonText} 
+            onChange={onChangeButtonText}
+          />
+        </InputGroup>
     </NodeEditor>
   );
 }

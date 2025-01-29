@@ -15,7 +15,6 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
 
   static async deserialize(editor, json, loadAsync, onError) {
     const node = await super.deserialize(editor, json);
-
     const props = json.components.find(c => c.name === "Inline View").props;
 
     if (json.components.find(c => c.name === "billboard")) {
@@ -27,9 +26,10 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
         await node.load(props.src, onError);
         node.inlineURL = props.inlineURL;
         node.frameOption = props.frameOption;
-        node.contentType = props.contentType || "url";       // 기본값 설정
-        node.triggerMode = props.triggerMode || "click";     // 기본값 설정
-        node.triggerDistance = props.triggerDistance || 2;   // 기본값 설정
+        node.contentType = props.contentType || "url";       
+        node.triggerMode = props.triggerMode || "click";     
+        node.triggerDistance = props.triggerDistance || 2;   
+        node.buttonText = props.buttonText || "Open Frame";
       })()
     );
     
@@ -44,10 +44,10 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
     this.frameOption = "Main";
     this.billboard = false;
     
-    // 새로운 속성들 추가
-    this.contentType = "url";     // 기본값은 url
-    this.triggerMode = "click";   // 기본값은 click
-    this.triggerDistance = 2;     // 기본값은 2미터
+    this.contentType = "url";
+    this.triggerMode = "click";
+    this.triggerDistance = 2;
+    this.buttonText = "Open Frame";  // 기본값
   }
 
   get src() {
@@ -130,6 +130,7 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
     this.contentType = source.contentType;
     this.triggerMode = source.triggerMode;
     this.triggerDistance = source.triggerDistance;
+    this.buttonText = source.buttonText;
 
     return this;
   }
@@ -142,7 +143,8 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
         frameOption: this.frameOption,
         contentType: this.contentType,
         triggerMode: this.triggerMode,
-        triggerDistance: this.triggerDistance
+        triggerDistance: this.triggerDistance,
+        buttonText: this.buttonText
       }
     };
 
@@ -172,7 +174,8 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
       imageURL: this.src,
       contentType: this.contentType,
       triggerMode: this.triggerMode,
-      triggerDistance: this.triggerDistance
+      triggerDistance: this.triggerDistance,
+      buttonText: this.buttonText
     });
 
     if (this.billboard) {
@@ -189,6 +192,15 @@ export default class InlineViewNode extends EditorNodeMixin(Image) {
   getRuntimeResourcesForStats() {
     if (this._texture) {
       return { textures: [this._texture], meshes: [this._mesh], materials: [this._mesh.material] };
+    }
+  }
+
+  // contentType이 변경될 때 buttonText 기본값도 변경
+  updateButtonText(contentType) {
+    if (contentType === "avatar") {
+      this.buttonText = "Change Avatar";
+    } else {
+      this.buttonText = "Open Frame";
     }
   }
 }
